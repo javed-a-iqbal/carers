@@ -41,10 +41,35 @@ carerRoutes.route('/:id').get(function(req,res){
 
 });
 
+
+
+carerRoutes.route('/delete/:id').get(function(req,res){
+    let id=req.params.id;
+    Carer.findByIdAndRemove(id)
+    .then(note => {
+        if(!note) {
+            return res.status(404).send({
+                message: "carer not found with id " + id
+            });
+        }
+        res.send({message: "carer deleted successfully!"});
+    }).catch(err => {
+        if(err.kind === 'ObjectId' || err.name === 'NotFound') {
+            return res.status(404).send({
+                message: "carer not found with id " + id
+            });                
+        }
+        return res.status(500).send({
+            message: "Could not delete carer with id " + id
+        });
+    });
+
+});
+
 carerRoutes.route('/add').post(function(req,res){
     let carer=new Carer(req.body);
     carer.save()
-    .then(todo => {
+    .then(carer => {
         res.status(200).json({'carer':'record added successfully'});
     })
     .catch(err =>{
@@ -58,13 +83,14 @@ carerRoutes.route('/update/:id').post(function(req,res){
       if(!carer) {
           res.status(404).send('record  is not found');
       } else {
+        
         carer.name=req.body.name;
         carer.save().then(carer =>{
               res.json('carer is updated');
 
           })
           .catch( err =>{
-            res.status(400).send("updated not possible")
+            res.status(400).send(err)
           });
 
       }
